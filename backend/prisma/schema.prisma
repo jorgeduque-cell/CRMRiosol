@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------- ENUMS ----------
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum CustomerStatus {
+  PROSPECT
+  NEGOTIATION
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum OilType {
+  SOY
+  PALM
+}
+
+// ---------- MODELS ----------
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      Role     @default(USER)
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Provider {
+  id        String          @id @default(uuid())
+  name      String
+  contact   String
+  oilType   OilType
+  purchases PurchaseOrder[]
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@map("providers")
+}
+
+model Customer {
+  id            String         @id @default(uuid())
+  name          String
+  contact       String
+  status        CustomerStatus @default(PROSPECT)
+  creditHistory String?
+  sales         SaleInvoice[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("customers")
+}
+
+model PurchaseOrder {
+  id          String   @id @default(uuid())
+  providerId  String
+  provider    Provider @relation(fields: [providerId], references: [id])
+  quantity    Float
+  unitPrice   Float
+  totalAmount Float
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("purchase_orders")
+}
+
+model SaleInvoice {
+  id                String   @id @default(uuid())
+  customerId        String
+  customer          Customer @relation(fields: [customerId], references: [id])
+  quantity          Float
+  salePrice         Float
+  utilityCalculated Float
+  accountsInvolved  Json
+  date              DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("sale_invoices")
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  dueDate     DateTime
+  isCompleted Boolean  @default(false)
+  priority    Priority @default(MEDIUM)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("tasks")
+}

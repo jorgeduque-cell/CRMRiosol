@@ -1,0 +1,9 @@
+# Ignore heavy/sensitive dirs in Docker build
+node_modules
+dist
+coverage
+.env
+.env.local
+.git
+.gitignore
+*.md
